@@ -28,6 +28,81 @@ namespace Ksu.Cis300.NameLookup
         /// </summary>
         public TreeForm Drawing => new TreeForm(_elements, 100);
 
+
+        private static BinaryTreeNode<KeyValuePair<TKey, TValue>> RemoveMinimumKey(BinaryTreeNode<KeyValuePair<TKey, TValue>> t, out KeyValuePair<TKey, TValue> min)
+        {
+            if (t.LeftChild == null)
+            {
+                min = t.Data;
+                return t.RightChild;
+            }
+            else
+            {
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> newLeft = RemoveMinimumKey(t.LeftChild, out min);
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> newTree = new BinaryTreeNode<KeyValuePair<TKey, TValue>>(t.Data, newLeft, t.RightChild);
+                return newTree;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="t"></param>
+        /// <param name="removed"></param>
+        /// <returns></returns>
+        private static BinaryTreeNode<KeyValuePair<TKey, TValue>> Remove(TKey key, BinaryTreeNode<KeyValuePair<TKey, TValue>> t, out bool removed)
+        {
+            if (t == null)
+            {
+                removed = false;
+                return t;
+            }
+            if (t.Data.Key.CompareTo(key) < 0)
+            {
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> rightUpdate = Remove(key, t.RightChild, out removed);
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> newTree = new BinaryTreeNode<KeyValuePair<TKey, TValue>>(t.Data, t.LeftChild, rightUpdate);
+                return newTree;
+            }
+            else if (t.Data.Key.CompareTo(key) > 0)
+            {
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> LeftUpdate = Remove(key, t.LeftChild, out removed);
+                BinaryTreeNode<KeyValuePair<TKey, TValue>> newTree = new BinaryTreeNode<KeyValuePair<TKey, TValue>>(t.Data, LeftUpdate, t.RightChild);
+                return newTree;
+            }
+            else
+            {
+                removed = true;
+                if (t.LeftChild == null && t.RightChild == null)
+                { 
+                    return null;
+                }
+                else if (t.RightChild == null)
+                {
+                    return t.LeftChild;
+                }
+                else if (t.LeftChild == null)
+                {
+                    return t.RightChild;
+                }
+                else
+                {
+                    KeyValuePair<TKey, TValue> min;
+                    BinaryTreeNode<KeyValuePair<TKey, TValue>> updatedRight = RemoveMinimumKey(t.RightChild, out min );
+                    BinaryTreeNode<KeyValuePair<TKey, TValue>> newTree = new BinaryTreeNode<KeyValuePair<TKey, TValue>>(min, t.LeftChild, updatedRight);
+                    return newTree;
+                }
+            }
+        }
+
+        public bool Remove(TKey k)
+        {
+            CheckKey(k);
+            bool removed;
+            _elements = Remove(k, _elements, out removed);
+            return removed;
+        }
+
         /// <summary>
         /// Checks to see if the given key is null, and if so, throws an
         /// ArgumentNullException.
